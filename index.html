@@ -37,7 +37,7 @@
         function loadIframe() {
             const url = document.getElementById('url-input').value;
             if (url) {
-                if(!url.contains("https://")){
+                if(!url.includes("https://")){
                     url = "https://" + url
                     document.getElementById('input-container').style.display = 'none';
                     const iframeContainer = document.getElementById('iframe-container');
