@@ -37,10 +37,18 @@
         function loadIframe() {
             const url = document.getElementById('url-input').value;
             if (url) {
-                document.getElementById('input-container').style.display = 'none';
-                const iframeContainer = document.getElementById('iframe-container');
-                iframeContainer.innerHTML = `<iframe src="${url}" allowfullscreen></iframe>`;
-                iframeContainer.style.display = 'block';
+                if(!url.contains("https://")){
+                    url = "https://" + url
+                    document.getElementById('input-container').style.display = 'none';
+                    const iframeContainer = document.getElementById('iframe-container');
+                    iframeContainer.innerHTML = `<iframe src="${url}" allowfullscreen></iframe>`;
+                    iframeContainer.style.display = 'block';
+                }else{
+                    document.getElementById('input-container').style.display = 'none';
+                    const iframeContainer = document.getElementById('iframe-container');
+                    iframeContainer.innerHTML = `<iframe src="${url}" allowfullscreen></iframe>`;
+                    iframeContainer.style.display = 'block';
+                }
             }
         }
     </script>
