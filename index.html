@@ -3,54 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL to iFrame</title>
+    <title>Mini Browser</title>
     <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
         body {
             font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            width: 100vw;
             height: 100vh;
-            margin: 0;
+            overflow: hidden;
+            background: #121212;
+            color: white;
         }
-        input, button {
+        #tab-container {
+            display: flex;
+            background: #1e1e1e;
+            padding: 5px;
+            align-items: center;
+        }
+        .tab {
+            padding: 8px 15px;
+            background: #333;
+            color: white;
+            margin-right: 5px;
+            cursor: pointer;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+        .tab.active {
+            background: #444;
+            font-weight: bold;
+        }
+        .close-tab {
+            margin-left: 8px;
+            cursor: pointer;
+            color: red;
+            font-weight: bold;
+        }
+        #input-container {
+            display: flex;
+            background: #1e1e1e;
             padding: 10px;
-            margin: 5px;
+            align-items: center;
+            gap: 5px;
+        }
+        #url-input {
+            flex: 1;
             font-size: 16px;
+            padding: 5px;
+            background: #333;
+            color: white;
+            border: none;
+            outline: none;
+            border-radius: 5px;
+        }
+        button {
+            padding: 5px 10px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+        }
+        #iframe-container {
+            flex: 1;
+            border: none;
+            position: relative;
         }
         iframe {
-            width: 80vw;
-            height: 80vh;
+            width: 100%;
+            height: 100%;
             border: none;
         }
     </style>
 </head>
 <body>
+    <div id="tab-container"></div>
     <div id="input-container">
-        <input type="text" id="url-input" placeholder="Enter URL">
-        <button onclick="loadIframe()">Go</button>
+        <button onclick="reloadPage()">&#x21bb;</button>
+        <input type="text" id="url-input" placeholder="Enter URL" onkeypress="handleKeyPress(event)">
     </div>
-    <div id="iframe-container" style="display: none;"></div>
+    <div id="iframe-container"></div>
     
     <script>
-        function loadIframe() {
-            let url = document.getElementById('url-input').value;
-            if (url) {
-                if(!url.includes("https://")){
-                    url = "https://" + url
-                    document.getElementById('input-container').style.display = 'none';
-                    const iframeContainer = document.getElementById('iframe-container');
-                    iframeContainer.innerHTML = `<iframe src="${url}" allowfullscreen></iframe>`;
-                    iframeContainer.style.display = 'block';
-                }else{
-                    document.getElementById('input-container').style.display = 'none';
-                    const iframeContainer = document.getElementById('iframe-container');
-                    iframeContainer.innerHTML = `<iframe src="${url}" allowfullscreen></iframe>`;
-                    iframeContainer.style.display = 'block';
+        document.addEventListener("DOMContentLoaded", () => {
+          if (!localStorage.getItem("firstTime")) {
+            alert("This site works best in fullscreen");
+            localStorage.setItem("firstTime", "true");
+          }
+        });
+
+        let tabs = [];
+        let activeTab = null;
+        function newTab(url = 'https://google.com') {
+            const tabId = `tab-${tabs.length}`;
+            const tab = { id: tabId, url, title: "New Tab" };
+            tabs.push(tab);
+            renderTabs();
+            switchTab(tabId);
+        }
+        function closeTab(id) {
+            tabs = tabs.filter(tab => tab.id !== id);
+            if (tabs.length === 0) newTab();
+            else if (activeTab === id) switchTab(tabs[0].id);
+            renderTabs();
+        }
+        function renderTabs() {
+            const tabContainer = document.getElementById('tab-container');
+            tabContainer.innerHTML = '';
+            tabs.forEach(tab => {
+                tabContainer.innerHTML += `<div class="tab ${tab.id === activeTab ? 'active' : ''}" onclick="switchTab('${tab.id}')">${tab.title} <span class='close-tab' onclick='event.stopPropagation(); closeTab("${tab.id}")'>&times;</span></div>`;
+            });
+            tabContainer.innerHTML += `<button onclick="newTab()">+</button>`;
+        }
+        function switchTab(id) {
+            activeTab = id;
+            const tab = tabs.find(t => t.id === id);
+            const urlInput = document.getElementById('url-input');
+            if (/^https?:\/\/(www\.)?google\./.test(tab.url)) {
+                urlInput.value = '';
+            } else {
+                urlInput.value = tab.url;
+            }
+            document.getElementById('iframe-container').innerHTML = `<iframe src="${tab.url}" onload="updateTabTitle('${tab.id}', this)"></iframe>`;
+            renderTabs();
+        }
+        function updateTabTitle(id, iframe) {
+            setTimeout(() => {
+                try {
+                    const tab = tabs.find(t => t.id === id);
+                    if (tab) {
+                        const url = new URL(tab.url);
+                        const domain = url.hostname.replace('www.', '').split('.')[0];
+                        tab.title = domain.charAt(0).toUpperCase() + domain.slice(1);
+                    }
+                    renderTabs();
+                } catch (error) {
+                    console.warn("Cross-origin restriction: Cannot access title");
                 }
+            }, 500);
+        }
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                let url = document.getElementById('url-input').value;
+                if (!url.startsWith('https://')) url = 'https://' + url;
+                const tab = tabs.find(t => t.id === activeTab);
+                tab.url = url;
+                switchTab(activeTab);
             }
         }
+        function reloadPage() {
+            switchTab(activeTab);
+        }
+        newTab();
     </script>
 </body>
 </html>
