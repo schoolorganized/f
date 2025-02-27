@@ -84,6 +84,11 @@
     </style>
 </head>
 <body>
+    <script>
+        if (localStorage.getItem("allowedInSite") !== "true") {
+            window.location.href = "https://efficitech.github.io/efficitech";
+        }
+    </script>
     <div id="tab-container"></div>
     <div id="input-container">
         <button onclick="reloadPage()">&#x21bb;</button>
@@ -93,10 +98,10 @@
     
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-          if (!localStorage.getItem("firstTime")) {
-            alert("This site works best in fullscreen");
-            localStorage.setItem("firstTime", "true");
-          }
+            if (!localStorage.getItem("firstTime")) {
+                alert("This site works best in fullscreen");
+                localStorage.setItem("firstTime", "true");
+            }
         });
 
         let tabs = [];
